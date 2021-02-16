@@ -19,7 +19,7 @@ public class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.ViewHold
 
     private ArrayList<String> localDataSet;
 
-    /**
+    /**11
      * Provide a reference to the type of views that you are using
      * (custom ViewHolder).
      */
