@@ -23,6 +23,7 @@ import androidx.cardview.widget.CardView;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import com.bumptech.glide.Glide;
 import com.example.snssampleapp.MemberInfo;
 import com.example.snssampleapp.R;
 import com.google.android.gms.tasks.Continuation;
@@ -42,7 +43,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 
-public class MemberInitActivity extends AppCompatActivity {
+public class MemberInitActivity extends BasicActivity {
     private static String TAG ="MemberInitActivity";
     private ImageView profileImageView;
     private String profilePath;
@@ -77,9 +78,11 @@ public class MemberInitActivity extends AppCompatActivity {
             case 0 : {
                 if(resultCode == Activity.RESULT_OK){
                     profilePath = data.getStringExtra("profilePath");
-                    Log.e("profilePath :",profilePath);
-                    Bitmap bmp = BitmapFactory.decodeFile(profilePath);
-                    profileImageView.setImageBitmap(bmp);
+                    Glide.with(this)
+                            .load(profilePath)
+                            .centerCrop()
+                            .override(500)
+                            .into(profileImageView);
 
                 }
                 break;
@@ -101,7 +104,7 @@ public class MemberInitActivity extends AppCompatActivity {
             StorageReference storageRef = storage.getReference();
 
             // Create a reference to "mountains.jpg"
-            final FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+            user = FirebaseAuth.getInstance().getCurrentUser();
             final StorageReference mountainsRef = storageRef.child("users/"+user.getUid()+"profileImage.png");
 
             if(profilePath == null){
@@ -208,7 +211,9 @@ public class MemberInitActivity extends AppCompatActivity {
                             PackageManager.PERMISSION_GRANTED) {
                         myStartActivity(GalleryActivity.class);
                     } else if (ActivityCompat.shouldShowRequestPermissionRationale(MemberInitActivity.this,Manifest.permission.READ_EXTERNAL_STORAGE)) {
-
+                        ActivityCompat.requestPermissions(MemberInitActivity.this,
+                                new String[] { Manifest.permission.READ_EXTERNAL_STORAGE },
+                                1);
                     } else {
                         ActivityCompat.requestPermissions(MemberInitActivity.this,
                                 new String[] { Manifest.permission.READ_EXTERNAL_STORAGE },

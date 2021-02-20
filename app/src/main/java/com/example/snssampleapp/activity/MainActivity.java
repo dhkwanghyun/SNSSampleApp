@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.view.View;
 
@@ -16,7 +17,7 @@ import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends BasicActivity {
 
     private FirebaseAuth mAuth;
 
@@ -24,13 +25,14 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
 
         if(FirebaseAuth.getInstance().getCurrentUser() == null){
             myStartActivity(SignUpActivity.class);
         }else{
             //myStartActivity(CameraActivity.class);
-            myStartActivity(MemberInitActivity.class);
+            //myStartActivity(MemberInitActivity.class);
 
             FirebaseFirestore db = FirebaseFirestore.getInstance();
             DocumentReference docRef = db.collection("users").document(user.getUid());
@@ -55,6 +57,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         findViewById(R.id.logoutButton).setOnClickListener(onClickListener);
+        findViewById(R.id.floatingActionButton).setOnClickListener(onClickListener);
 
 
     }
@@ -67,6 +70,9 @@ public class MainActivity extends AppCompatActivity {
                 case R.id.logoutButton:
                     FirebaseAuth.getInstance().signOut();
                     myStartActivity(SignUpActivity.class);
+                    break;
+                case R.id.floatingActionButton:
+                    myStartActivity(WritePostActivity.class);
                     break;
             }
         }
