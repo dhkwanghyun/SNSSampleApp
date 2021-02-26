@@ -1,14 +1,18 @@
 package com.example.snssampleapp.activity;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
-import android.view.View;
+import android.widget.Toast;
 
-import androidx.appcompat.app.AppCompatActivity;
+import androidx.annotation.NonNull;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -18,22 +22,54 @@ import com.example.snssampleapp.adapter.GalleryAdapter;
 import java.util.ArrayList;
 
 public class GalleryActivity extends BasicActivity {
-    private RecyclerView recyclerView;
-    private RecyclerView.Adapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_gallery);
 
+        if (ContextCompat.checkSelfPermission(
+                GalleryActivity.this, Manifest.permission.READ_EXTERNAL_STORAGE) ==
+                PackageManager.PERMISSION_GRANTED) {
+            recyclerInit();
+        } else if (ActivityCompat.shouldShowRequestPermissionRationale(GalleryActivity.this,Manifest.permission.READ_EXTERNAL_STORAGE)) {
+            ActivityCompat.requestPermissions(GalleryActivity.this,
+                    new String[] { Manifest.permission.READ_EXTERNAL_STORAGE },
+                    1);
+        } else {
+            ActivityCompat.requestPermissions(GalleryActivity.this,
+                    new String[] { Manifest.permission.READ_EXTERNAL_STORAGE },
+                    1);
+            startToast("권한을 허용해 주세요.");
+        }
+
+
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        switch (requestCode) {
+            case 1:
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0 &&
+                        grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    recyclerInit();
+                }  else {
+                    finish();
+                    startToast("권한을 허용해 주세요.");
+                }
+        }
+    }
+
+    private void recyclerInit(){
         final int numberOfColumns = 3;
 
-        recyclerView = findViewById(R.id.recyclerView);
+        RecyclerView recyclerView = findViewById(R.id.recyclerView);
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new GridLayoutManager(this, numberOfColumns));
 
         //String[] myDataset = {"강아지","고양이","드래곤","치킨"};
-        adapter = new GalleryAdapter(this,getImagesPath(this));
+        RecyclerView.Adapter adapter = new GalleryAdapter(this,getImagesPath(this));
         recyclerView.setAdapter(adapter);
     }
 
@@ -64,6 +100,10 @@ public class GalleryActivity extends BasicActivity {
             listOfAllImages.add(PathOfImage);
         }
         return listOfAllImages;
+    }
+
+    private void startToast(String msg){
+        Toast.makeText(GalleryActivity.this,msg,Toast.LENGTH_SHORT).show();
     }
 
 }

@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -37,10 +38,13 @@ public class LoginActivity extends BasicActivity {
         String password = ((EditText) findViewById(R.id.passwordEditText)).getText().toString();
 
         if(email.length() > 0 && password.length() > 0){
+            final RelativeLayout loderLayout = findViewById(R.id.loaderLayout);
+            loderLayout.setVisibility(View.VISIBLE);
             mAuth.signInWithEmailAndPassword(email, password)
                     .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                         @Override
                         public void onComplete(@NonNull Task<AuthResult> task) {
+                            loderLayout.setVisibility(View.GONE);
                             if (task.isSuccessful()) {
                                 startToast("로그인에 성공했습니다.");
                                 FirebaseUser user = mAuth.getCurrentUser();

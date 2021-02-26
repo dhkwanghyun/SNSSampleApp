@@ -13,6 +13,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -48,6 +49,7 @@ public class MemberInitActivity extends BasicActivity {
     private ImageView profileImageView;
     private String profilePath;
     private FirebaseUser user;
+    private RelativeLayout loaderLayout;
 
 
     @Override
@@ -57,6 +59,8 @@ public class MemberInitActivity extends BasicActivity {
 
         profileImageView = findViewById(R.id.profileImageView);
         profileImageView.setOnClickListener(onClickListener);
+        loaderLayout = findViewById(R.id.loaderLayout);
+
 
         findViewById(R.id.checkButton).setOnClickListener(onClickListener);
         findViewById(R.id.picture).setOnClickListener(onClickListener);
@@ -90,13 +94,14 @@ public class MemberInitActivity extends BasicActivity {
         }
     }
 
-    private void profileUpdate(){
+    private void storageUploader(){
         final String name = ((EditText) findViewById(R.id.nameEditText)).getText().toString();
         final String phone = ((EditText) findViewById(R.id.phoneNumberEditText)).getText().toString();
         final String birthDay = ((EditText) findViewById(R.id.birthDayEditText)).getText().toString();
         final String address = ((EditText) findViewById(R.id.addressEditText)).getText().toString();
 
         if(name.length() > 0 && phone.length() > 9 && birthDay.length() > 5 && address.length() > 0){
+            loaderLayout.setVisibility(View.VISIBLE);
 
             FirebaseStorage storage = FirebaseStorage.getInstance();
 
@@ -109,7 +114,7 @@ public class MemberInitActivity extends BasicActivity {
 
             if(profilePath == null){
                 MemberInfo memberInfo = new MemberInfo(name, phone, birthDay,address);
-                uploader(memberInfo);
+                storeUploder(memberInfo);
             }else{
                 InputStream stream = null;
                 try {
@@ -133,7 +138,7 @@ public class MemberInitActivity extends BasicActivity {
                                 Log.d("성공", "성공 ~~~"+downloadUri);
 
                                 MemberInfo memberInfo = new MemberInfo(name, phone, birthDay,address,downloadUri.toString());
-                                uploader(memberInfo);
+                                storeUploder(memberInfo);
 
 
                             } else {
@@ -154,13 +159,14 @@ public class MemberInitActivity extends BasicActivity {
         }
     }
 
-    private void uploader(MemberInfo memberInfo){
+    private void storeUploder(MemberInfo memberInfo){
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         db.collection("users").document(user.getUid()).set(memberInfo)
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
                     public void onSuccess(Void aVoid) {
                         startToast("회원정보 등록을 성공하였습니다.");
+                        loaderLayout.setVisibility(View.GONE);
                         finish();
                     }
                 })
@@ -168,6 +174,7 @@ public class MemberInitActivity extends BasicActivity {
                     @Override
                     public void onFailure(@NonNull Exception e) {
                         startToast("회원정보 등록을 실패하였습니다."+e);
+                        loaderLayout.setVisibility(View.GONE);
                     }
                 });
 
@@ -191,7 +198,7 @@ public class MemberInitActivity extends BasicActivity {
         public void onClick(View view) {
             switch (view.getId()){
                 case R.id.checkButton:
-                    profileUpdate();
+                    storageUploader();
                     break;
                 case R.id.profileImageView:
                     CardView cardView = findViewById(R.id.buttonsCardView);
@@ -206,42 +213,10 @@ public class MemberInitActivity extends BasicActivity {
                     myStartActivity(CameraActivity.class);
                     break;
                 case R.id.gallery:
-                    if (ContextCompat.checkSelfPermission(
-                            MemberInitActivity.this, Manifest.permission.READ_EXTERNAL_STORAGE) ==
-                            PackageManager.PERMISSION_GRANTED) {
-                        myStartActivity(GalleryActivity.class);
-                    } else if (ActivityCompat.shouldShowRequestPermissionRationale(MemberInitActivity.this,Manifest.permission.READ_EXTERNAL_STORAGE)) {
-                        ActivityCompat.requestPermissions(MemberInitActivity.this,
-                                new String[] { Manifest.permission.READ_EXTERNAL_STORAGE },
-                                1);
-                    } else {
-                        ActivityCompat.requestPermissions(MemberInitActivity.this,
-                                new String[] { Manifest.permission.READ_EXTERNAL_STORAGE },
-                                1);
-                        startToast("권한을 허용해 주세요.");
-                    }
-
+                    myStartActivity(GalleryActivity.class);
                     break;
             }
         }
     };
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions,
-                                           int[] grantResults) {
-        switch (requestCode) {
-            case 1:
-                // If request is cancelled, the result arrays are empty.
-                if (grantResults.length > 0 &&
-                        grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    myStartActivity(GalleryActivity.class);
-                }  else {
-                    startToast("권한을 허용해 주세요.");
-                }
-                return;
-        }
-        // Other 'case' lines to check for other
-        // permissions this app might request.
-    }
 
 }

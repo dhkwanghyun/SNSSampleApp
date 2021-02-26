@@ -18,14 +18,10 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.bumptech.glide.Glide;
-import com.example.snssampleapp.MemberInfo;
+import com.example.snssampleapp.PostInfo;
 import com.example.snssampleapp.R;
-import com.example.snssampleapp.WriteInfo;
-import com.google.android.gms.tasks.Continuation;
-import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
@@ -51,6 +47,7 @@ public class WritePostActivity extends BasicActivity {
     private int pathCount,successCount;
 
     RelativeLayout buttonsBackgroundLayout;
+    private RelativeLayout loaderLayout;
 
     private ImageView selectedImageView;
     private EditText selectedEditText;
@@ -62,6 +59,7 @@ public class WritePostActivity extends BasicActivity {
 
         parent = findViewById(R.id.contentsLayout);
         buttonsBackgroundLayout = findViewById(R.id.buttonsBackgroundLayout);
+        loaderLayout = findViewById(R.id.loaderLayout);
 
         buttonsBackgroundLayout.setOnClickListener(onClickListener);
         findViewById(R.id.check).setOnClickListener(onClickListener);
@@ -202,6 +200,8 @@ public class WritePostActivity extends BasicActivity {
             FirebaseFirestore filebaseFirestore = FirebaseFirestore.getInstance();
             final DocumentReference documentReference = filebaseFirestore.collection("posts").document();
 
+            loaderLayout.setVisibility(View.VISIBLE);
+
             for(int i = 0; i< parent.getChildCount(); i++){
 
                 LinearLayout linearLayout = (LinearLayout) parent.getChildAt(i);
@@ -215,8 +215,9 @@ public class WritePostActivity extends BasicActivity {
                     }else{
 
                         contentsList.add(pathList.get(pathCount));
+                        String[] pathArray = pathList.get(pathCount).split("\\.");
 
-                        final StorageReference mountainsRef = storageRef.child("posts/"+documentReference.getId()+"/"+pathCount+".png");
+                        final StorageReference mountainsRef = storageRef.child("posts/"+documentReference.getId()+"/. "+pathCount+pathArray[pathArray.length - 1]);
 
                         try {
                             InputStream stream = new FileInputStream(new File(pathList.get(pathCount)));
@@ -244,8 +245,8 @@ public class WritePostActivity extends BasicActivity {
                                             contentsList.set(index,uri.toString());
                                             successCount++;
                                             if(pathList.size() == successCount){
-                                                WriteInfo writeInfo = new WriteInfo(title, contentsList, user.getUid(),new Date());
-                                                storeUploader(documentReference,writeInfo);
+                                                PostInfo postInfo = new PostInfo(title, contentsList, user.getUid(),new Date());
+                                                storeUploader(documentReference,postInfo);
                                             }
                                         }
                                     });
@@ -264,19 +265,23 @@ public class WritePostActivity extends BasicActivity {
 
 
             }
-
+            if(pathList.size() == 0){
+                PostInfo postInfo = new PostInfo(title, contentsList, user.getUid(),new Date());
+                storeUploader(documentReference,postInfo);
+            }
 
         }else{
             startToast("제목을 입력해 주세요.");
         }
     }
 
-    private void storeUploader(DocumentReference documentReference, WriteInfo writeInfo){
-        documentReference.set(writeInfo)
+    private void storeUploader(DocumentReference documentReference, PostInfo postInfo){
+        documentReference.set(postInfo)
             .addOnSuccessListener(new OnSuccessListener<Void>() {
                 @Override
                 public void onSuccess(Void aVoid) {
                     startToast("저장성공");
+                    loaderLayout.setVisibility(View.GONE);
                     finish();
                 }
             })
@@ -284,6 +289,7 @@ public class WritePostActivity extends BasicActivity {
                 @Override
                 public void onFailure(@NonNull Exception e) {
                     startToast("저장실패");
+                    loaderLayout.setVisibility(View.GONE);
                 }
             });
 
