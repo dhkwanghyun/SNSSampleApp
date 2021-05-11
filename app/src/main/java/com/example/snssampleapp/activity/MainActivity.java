@@ -1,56 +1,72 @@
 package com.example.snssampleapp.activity;
 
+
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.GridLayoutManager;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
+import androidx.annotation.Nullable;
 
 import android.content.Intent;
-import android.content.pm.ActivityInfo;
-import android.os.Bundle;
-import android.util.Log;
-import android.view.View;
 
-import com.example.snssampleapp.PostInfo;
+import android.os.Bundle;
+import android.view.MenuItem;
+import android.widget.Switch;
+
 import com.example.snssampleapp.R;
-import com.example.snssampleapp.adapter.GalleryAdapter;
-import com.example.snssampleapp.adapter.MainAdapter;
+import com.example.snssampleapp.fragment.Camera2BasicFragment;
+import com.example.snssampleapp.fragment.HomeFragment;
+import com.example.snssampleapp.fragment.UserInfoFragment;
+import com.example.snssampleapp.fragment.UserListFragment;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.Query;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
-import com.google.firebase.firestore.QuerySnapshot;
-
-import java.util.ArrayList;
-import java.util.Date;
 
 public class MainActivity extends BasicActivity {
 
-    private FirebaseAuth mAuth;
     private String TAG = "MainActivity";
-    private FirebaseUser firebaseUser;
     private FirebaseFirestore firebaseFirestore;
-    RecyclerView recyclerView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        setToolbarTitle(getResources().getString(R.string.app_name));
 
-        firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
+        init();
+
+
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        switch (requestCode){
+            case 1 :
+                init();
+                break;
+
+        }
+    }
+
+    private void init(){
+        FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
 
         if(firebaseUser == null){
             myStartActivity(SignUpActivity.class);
         }else{
-            //myStartActivity(CameraActivity.class);
-            //myStartActivity(MemberInitActivity.class);
 
             firebaseFirestore = FirebaseFirestore.getInstance();
             DocumentReference documentReference = firebaseFirestore.collection("users").document(firebaseUser.getUid());
@@ -73,71 +89,44 @@ public class MainActivity extends BasicActivity {
                 }
             });
 
+            HomeFragment homeFragment = new HomeFragment();
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.container, homeFragment)
+                    .commit();
+
+            BottomNavigationView bottomNavigationView = findViewById(R.id.bottomNavigationView);
+            bottomNavigationView.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
+                @Override
+                public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                    switch(item.getItemId()){
+                        case R.id.home:
+                            HomeFragment homeFragment = new HomeFragment();
+                            getSupportFragmentManager().beginTransaction()
+                                    .replace(R.id.container, homeFragment)
+                                    .commit();
+                            return true;
+                        case R.id.myInfo:
+                            UserInfoFragment userInfoFragment = new UserInfoFragment();
+                            getSupportFragmentManager().beginTransaction()
+                                    .replace(R.id.container, userInfoFragment)
+                                    .commit();
+                            return true;
+                        case R.id.userList:
+                            UserListFragment userListFragment = new UserListFragment();
+                            getSupportFragmentManager().beginTransaction()
+                                    .replace(R.id.container, userListFragment)
+                                    .commit();
+                            return true;
+                    }
+                    return false;
+                }
+            });
         }
-
-        recyclerView = findViewById(R.id.recyclerView);
-        recyclerView.setHasFixedSize(true);
-        recyclerView.setLayoutManager(new LinearLayoutManager(MainActivity.this));
-        //findViewById(R.id.logoutButton).setOnClickListener(onClickListener);
-        findViewById(R.id.floatingActionButton).setOnClickListener(onClickListener);
-
     }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-
-        if(firebaseUser != null){
-            CollectionReference collectionReference = firebaseFirestore.collection("posts");
-
-            collectionReference.orderBy("createdAt", Query.Direction.DESCENDING).get()
-                    .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                        @Override
-                        public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                            ArrayList<PostInfo> postList = new ArrayList<>();
-                            if (task.isSuccessful()) {
-                                for (QueryDocumentSnapshot document : task.getResult()) {
-                                    Log.d(TAG, document.getId() + " => " + document.getData());
-                                    postList.add(new PostInfo(
-                                            document.getData().get("title").toString(),
-                                            (ArrayList<String>) document.getData().get("contents"),
-                                            document.getData().get("publisher").toString(),
-                                            new Date(document.getDate("createdAt").getTime())));
-                                }
-
-                                RecyclerView.Adapter adapter = new MainAdapter(MainActivity.this,postList);
-                                recyclerView.setAdapter(adapter);
-
-                            } else {
-                                Log.d(TAG, "Error getting documents: ", task.getException());
-                            }
-                        }
-                    });
-
-        }
-
-    }
-
-    View.OnClickListener onClickListener = new View.OnClickListener() {
-        @Override
-        public void onClick(View view) {
-            switch (view.getId()){
-                /*
-                case R.id.logoutButton:
-                    FirebaseAuth.getInstance().signOut();
-                    myStartActivity(SignUpActivity.class);
-                    break;
-                */
-                case R.id.floatingActionButton:
-                    myStartActivity(WritePostActivity.class);
-                    break;
-            }
-        }
-    };
 
     private void myStartActivity(Class c){
         Intent intent = new Intent(this,c);
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        startActivity(intent);
+        startActivityForResult(intent,1);
     }
+
 }

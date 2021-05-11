@@ -2,21 +2,21 @@ package com.example.snssampleapp;
 
 import android.widget.EditText;
 
-public class MemberInfo {
+public class UserInfo {
     private String name;
     private String phone;
     private String birthDay;
     private String address;
     private String photoUrl;
 
-    public MemberInfo(String name,String phone,String birthDay,String address){
+    public UserInfo(String name, String phone, String birthDay, String address){
         this.name = name;
         this.phone = phone;
         this.birthDay = birthDay;
         this.address = address;
     }
 
-    public MemberInfo(String name,String phone,String birthDay,String address,String photoUrl){
+    public UserInfo(String name, String phone, String birthDay, String address, String photoUrl){
         this.name = name;
         this.phone = phone;
         this.birthDay = birthDay;

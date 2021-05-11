@@ -20,6 +20,8 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
+import static com.example.snssampleapp.Util.showToast;
+
 public class SignUpActivity extends BasicActivity {
     private static String TAG ="SignActivity";
     private FirebaseAuth mAuth;
@@ -28,6 +30,7 @@ public class SignUpActivity extends BasicActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sign_up);
+        setToolbarTitle("회원가입");
 
         mAuth = FirebaseAuth.getInstance();
 
@@ -60,15 +63,15 @@ public class SignUpActivity extends BasicActivity {
                                 loaderLayout.setVisibility(View.GONE);
                                 if (task.isSuccessful()) {
                                     // Sign in success, update UI with the signed-in user's information
-                                    startToast("회원가입에 성공했습니다.");
+                                    showToast(SignUpActivity.this,"회원가입에 성공했습니다.");
                                     FirebaseUser user = mAuth.getCurrentUser();
                                     myStartActivity(MainActivity.class);
 
                                 } else {
                                     // If sign in fails, display a message to the user.
-                                    startToast(task.getException().toString());
+                                    showToast(SignUpActivity.this,task.getException().toString());
                                     if(task.getException() != null){
-                                        startToast(task.getException().toString());
+                                        showToast(SignUpActivity.this,task.getException().toString());
                                     }
                                 }
 
@@ -77,7 +80,8 @@ public class SignUpActivity extends BasicActivity {
                         });
 
             }else{
-                startToast("비밀번호가 일치하지 않습니다.");
+                showToast(SignUpActivity.this,"비밀번호가 일치하지 않습니다.");
+
             }
         }
     }
@@ -86,10 +90,6 @@ public class SignUpActivity extends BasicActivity {
         Intent intent = new Intent(this,c);
         intent.addFlags(intent.FLAG_ACTIVITY_CLEAR_TOP);
         startActivity(intent);
-    }
-
-    private void startToast(String msg){
-        Toast.makeText(this,msg,Toast.LENGTH_SHORT).show();
     }
 
     View.OnClickListener onClickListener = new View.OnClickListener() {

@@ -34,6 +34,7 @@
         <activity android:name=".activity.GalleryActivity"></activity>
         <activity android:name=".activity.BasicActivity"></activity>
         <activity android:name=".activity.WritePostActivity"></activity>
+        <activity android:name=".activity.PostActivity"></activity>
 
     </application>
 

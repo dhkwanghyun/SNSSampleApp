@@ -1,11 +1,7 @@
 package com.example.snssampleapp.activity;
 
-import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -19,13 +15,9 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.cardview.widget.CardView;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 
 import com.bumptech.glide.Glide;
-import com.example.snssampleapp.MemberInfo;
+import com.example.snssampleapp.UserInfo;
 import com.example.snssampleapp.R;
 import com.google.android.gms.tasks.Continuation;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -44,24 +36,29 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 
+import static com.example.snssampleapp.Util.INTENT_PATH;
+
 public class MemberInitActivity extends BasicActivity {
     private static String TAG ="MemberInitActivity";
     private ImageView profileImageView;
     private String profilePath;
     private FirebaseUser user;
     private RelativeLayout loaderLayout;
+    private RelativeLayout buttonsBackgroundLayout;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_member_init);
+        setContentView(R.layout.activity_user_init);
+        setToolbarTitle("회원정보");
 
         profileImageView = findViewById(R.id.profileImageView);
         profileImageView.setOnClickListener(onClickListener);
         loaderLayout = findViewById(R.id.loaderLayout);
+        buttonsBackgroundLayout = findViewById(R.id.buttonsBackgroundLayout);
 
-
+        buttonsBackgroundLayout.setOnClickListener(onClickListener);
         findViewById(R.id.checkButton).setOnClickListener(onClickListener);
         findViewById(R.id.picture).setOnClickListener(onClickListener);
         findViewById(R.id.gallery).setOnClickListener(onClickListener);
@@ -81,12 +78,13 @@ public class MemberInitActivity extends BasicActivity {
         switch (requestCode){
             case 0 : {
                 if(resultCode == Activity.RESULT_OK){
-                    profilePath = data.getStringExtra("profilePath");
+                    profilePath = data.getStringExtra(INTENT_PATH);
                     Glide.with(this)
                             .load(profilePath)
                             .centerCrop()
                             .override(500)
                             .into(profileImageView);
+                    buttonsBackgroundLayout.setVisibility(View.GONE);
 
                 }
                 break;
@@ -113,8 +111,8 @@ public class MemberInitActivity extends BasicActivity {
             final StorageReference mountainsRef = storageRef.child("users/"+user.getUid()+"profileImage.png");
 
             if(profilePath == null){
-                MemberInfo memberInfo = new MemberInfo(name, phone, birthDay,address);
-                storeUploder(memberInfo);
+                UserInfo userInfo = new UserInfo(name, phone, birthDay,address);
+                storeUploder(userInfo);
             }else{
                 InputStream stream = null;
                 try {
@@ -137,8 +135,8 @@ public class MemberInitActivity extends BasicActivity {
                                 Uri downloadUri = task.getResult();
                                 Log.d("성공", "성공 ~~~"+downloadUri);
 
-                                MemberInfo memberInfo = new MemberInfo(name, phone, birthDay,address,downloadUri.toString());
-                                storeUploder(memberInfo);
+                                UserInfo userInfo = new UserInfo(name, phone, birthDay,address,downloadUri.toString());
+                                storeUploder(userInfo);
 
 
                             } else {
@@ -159,9 +157,9 @@ public class MemberInitActivity extends BasicActivity {
         }
     }
 
-    private void storeUploder(MemberInfo memberInfo){
+    private void storeUploder(UserInfo userInfo){
         FirebaseFirestore db = FirebaseFirestore.getInstance();
-        db.collection("users").document(user.getUid()).set(memberInfo)
+        db.collection("users").document(user.getUid()).set(userInfo)
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
                     public void onSuccess(Void aVoid) {
@@ -201,13 +199,11 @@ public class MemberInitActivity extends BasicActivity {
                     storageUploader();
                     break;
                 case R.id.profileImageView:
-                    CardView cardView = findViewById(R.id.buttonsCardView);
-                    if(cardView.getVisibility() == View.VISIBLE){
-                        cardView.setVisibility(View.GONE);
-                    }else{
-                        cardView.setVisibility(View.VISIBLE);
-                    }
+                    buttonsBackgroundLayout.setVisibility(View.VISIBLE);
                     //myStartActivity(CameraActivity.class);
+                    break;
+                case R.id.buttonsBackgroundLayout:
+                    buttonsBackgroundLayout.setVisibility(View.GONE);
                     break;
                 case R.id.picture:
                     myStartActivity(CameraActivity.class);

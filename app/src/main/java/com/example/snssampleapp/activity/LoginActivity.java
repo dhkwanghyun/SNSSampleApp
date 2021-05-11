@@ -17,6 +17,8 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
+import static com.example.snssampleapp.Util.showToast;
+
 public class LoginActivity extends BasicActivity {
     private static String TAG ="SignActivity";
     private FirebaseAuth mAuth;
@@ -25,6 +27,7 @@ public class LoginActivity extends BasicActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+        setToolbarTitle("로그인");
 
         mAuth = FirebaseAuth.getInstance();
 
@@ -46,18 +49,18 @@ public class LoginActivity extends BasicActivity {
                         public void onComplete(@NonNull Task<AuthResult> task) {
                             loderLayout.setVisibility(View.GONE);
                             if (task.isSuccessful()) {
-                                startToast("로그인에 성공했습니다.");
+                                showToast(LoginActivity.this,"로그인에 성공했습니다.");
                                 FirebaseUser user = mAuth.getCurrentUser();
                                 myStartActivity(MainActivity.class);
                             } else {
-                                Toast.makeText(LoginActivity.this,"로그인에 실패",Toast.LENGTH_SHORT).show();
+                                showToast(LoginActivity.this,"로그인에 실패");
                             }
 
                         }
                     });
 
         }else{
-            startToast("비밀번호가 일치하지 않습니다.");
+            showToast(LoginActivity.this,"비밀번호가 일치하지 않습니다.");
         }
     }
 
@@ -65,11 +68,6 @@ public class LoginActivity extends BasicActivity {
         Intent intent = new Intent(this,c);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         startActivity(intent);
-    }
-
-
-    private void startToast(String msg){
-        Toast.makeText(this,msg,Toast.LENGTH_SHORT).show();
     }
 
     View.OnClickListener onClickListener = new View.OnClickListener() {
